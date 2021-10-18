@@ -24,17 +24,11 @@ class Accelerometer
         unsigned int z;
 
     public:
-        // getters for axes
-        unsigned int getX();
-        unsigned int getY();
-        unsigned int getZ();
-        
+        Accelerometer(int xpin, int ypin, int zpin);
+
         // methods for getting roll and pitch
         float getRoll();
         float getPitch();
-
-    public:
-        Accelerometer(int xpin, int ypin, int zpin);
 
         // calculates acceleration for x-axis
         int getXAccel();
@@ -44,9 +38,6 @@ class Accelerometer
 
         // calculates acceleration for z-axis
         int getZAccel();
-
-        // prints formatted accelerometer info to serial monitor
-        void printInfo();
 
         // reads accelerometer pins and updates all axis data
         void readInput();

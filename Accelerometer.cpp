@@ -8,18 +8,6 @@
 Accelerometer::Accelerometer(int xpin, int ypin, int zpin)
     : xpin(xpin), ypin(ypin), zpin(zpin) { /* Empty */ };
 
-unsigned int Accelerometer::getX() {
-    return this->x;
-}
-
-unsigned int Accelerometer::getY() {
-    return this->y;
-}
-
-unsigned int Accelerometer::getZ() {
-    return this->z;
-}
-
 //float Accelerometer::calcAccel(int val, float bias, float sensitivity) {
 //    return (((float)val / 1024.0 * ADC_ref - bias)) / sensitivity;
 //}
