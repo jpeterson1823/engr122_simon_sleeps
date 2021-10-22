@@ -1,4 +1,4 @@
-#include "Arduino.h"
+#include <Arduino.h>
 #include "Accelerometer.h"
 #include <math.h>
 
@@ -46,5 +46,3 @@ void Accelerometer::readInput()
     y = readAxis(ypin);
     z = readAxis(zpin);
 }
-
-

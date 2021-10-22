@@ -1,7 +1,7 @@
 #ifndef Accelerometer_h
 #define Accelerometer_h
 
-#include "Arduino.h"
+//#include "Arduino.h"
 
 // Minimum and Maximum possible raw digital numbers
 #define RMIN 0

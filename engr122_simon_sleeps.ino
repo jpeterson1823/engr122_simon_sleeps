@@ -1,40 +1,57 @@
-#include "Accelerometer.h"
+#include "SimonModule.h"
+#include <Wire.h>
 
 #define XPIN 1
 #define YPIN 2
 #define ZPIN 3
 
-float rollf;
-float pitchf;
+SimonModule* smod;
 
-// create accelerometer object
-Accelerometer accelerometer(XPIN, YPIN, ZPIN);
 
 void setup() {
-    // Set analog ref voltage
-    analogReference(EXTERNAL);
+    smod = new SimonModule();
+}
 
-    // get initial reading of the accelerometer
-    accelerometer.readInput();
-    rollf = accelerometer.getRoll();
-    pitchf = accelerometer.getPitch();
-
-    // start serial @ 9600 baud
-    Serial.begin(9600);
+void loop() {
+    smod->generatePattern();
+    smod->displayPattern();
+    delay(1000);
 }
 
 
-void loop() {
-    // read accelerometer input and updates each axis
-    accelerometer.readInput();
+// scans all device ports and print any connection addresses to the serial monitor
+void deviceScan() {
+    // init wire
+    Wire.begin();
 
-    // apply lowpass filter to roll and pitch
-    rollf = 0.96 * rollf + 0.04 * accelerometer.getRoll();
-    pitchf = 0.96 * pitchf + 0.04 * accelerometer.getPitch();
+    byt error, address;
+    int devices = 0;
 
-    // display roll and pitch
-    Serial.print("Roll: ");
-    Serial.println(rollf);
-    Serial.print("Pitch: ");
-    Serial.println(pitchf);
+    // begin scan
+    Serial.println("Scanning...");
+    for (address = 1; address < 127; address++) {
+        // start and end a transmission
+        Wire.beginTransmission(address);
+        error = Wire.endTransmission();
+
+        // if no error, device is there
+        if (error == 0) {
+            Serial.print("\tI2C device found at address 0x");
+            if (address < 16)
+                Serial.print("0");
+            Serial.print(address, HEX);
+            Serial.println();
+            devices++;
+        }
+        // unknown error thrown. idk what that means
+        else if (error == 4) {
+            Serial.print("\tUnknown error at address 0x");
+            if (address < 16)
+                Serial.print("0");
+            Serial.println(address, HEX);
+        }
+    }
+    Serial.println("Scan completed");
+    if (devices == 0)
+        Serial.println("No I2C devices found\n");
 }
