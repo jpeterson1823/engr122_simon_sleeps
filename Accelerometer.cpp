@@ -6,31 +6,36 @@
 
 // Accelerometer constructor just sets values to given ones.
 Accelerometer::Accelerometer(int xpin, int ypin, int zpin)
-    : xpin(xpin), ypin(ypin), zpin(zpin) { /* Empty */ };
+    : xpin(xpin), ypin(ypin), zpin(zpin) {
+        // set analog reference voltage to 3.3V for accelerometer readings
+        analogReference(EXTERNAL);
+};
 
-//float Accelerometer::calcAccel(int val, float bias, float sensitivity) {
-//    return (((float)val / 1024.0 * ADC_ref - bias)) / sensitivity;
-//}
 
 int Accelerometer::getXAccel() {
     return map(x, RMIN, RMAX, -3000, 3000);
 }
 
+
 int Accelerometer::getYAccel() {
     return map(y, RMIN, RMAX, -3000, 3000);
 }
+
 
 int Accelerometer::getZAccel() {
     return map(z, RMIN, RMAX, -3000, 3000);
 }
 
+
 float Accelerometer::getRoll() {
     return atan(getYAccel() / sqrt(pow(getYAccel(), 2) + pow(getZAccel(), 2))) * 180 / PI;
 }
 
+
 float Accelerometer::getPitch() {
     return atan(-1 * getXAccel() / sqrt(pow(getYAccel(), 2) + pow(getZAccel(), 2))) * 180 / PI;
 }
+
 
 int readAxis(int pin)
 {
@@ -39,6 +44,7 @@ int readAxis(int pin)
         reading += analogRead(pin);
     return reading / SAMPLE_SIZE;
 }
+
 
 void Accelerometer::readInput()
 {

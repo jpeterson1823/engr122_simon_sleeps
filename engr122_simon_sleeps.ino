@@ -7,15 +7,14 @@
 
 SimonModule* smod;
 
-
 void setup() {
     smod = new SimonModule();
+    delay(500);
+    smod->testAccel();
 }
 
 void loop() {
-    smod->generatePattern();
-    smod->displayPattern();
-    delay(1000);
+
 }
 
 
@@ -24,7 +23,7 @@ void deviceScan() {
     // init wire
     Wire.begin();
 
-    byt error, address;
+    byte error, address;
     int devices = 0;
 
     // begin scan
