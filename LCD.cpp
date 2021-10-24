@@ -13,6 +13,7 @@ LCD::LCD(uint8_t address) {
     lcd->setCursor(0, 0);
 }
 
+
 void LCD::clear() {
     lcd->clear();
 }

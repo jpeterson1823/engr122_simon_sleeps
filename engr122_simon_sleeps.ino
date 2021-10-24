@@ -1,16 +1,14 @@
 #include "SimonModule.h"
 #include <Wire.h>
 
-#define XPIN 1
-#define YPIN 2
-#define ZPIN 3
-
 SimonModule* smod;
 
 void setup() {
+    // start Serial
+    Serial.begin(9600);
+
     smod = new SimonModule();
-    delay(500);
-    smod->testAccel();
+    smod->playRound();
 }
 
 void loop() {

@@ -7,8 +7,10 @@
 // Accelerometer constructor just sets values to given ones.
 Accelerometer::Accelerometer(int xpin, int ypin, int zpin)
     : xpin(xpin), ypin(ypin), zpin(zpin) {
-        // set analog reference voltage to 3.3V for accelerometer readings
-        analogReference(EXTERNAL);
+        // set pins as input
+        pinMode(xpin, INPUT);
+        pinMode(ypin, INPUT);
+        pinMode(zpin, INPUT);
 };
 
 

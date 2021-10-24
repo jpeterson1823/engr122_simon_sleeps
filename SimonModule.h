@@ -2,8 +2,8 @@
 #include "LCD.h"
 
 #define PLEN 5
-#define UP 0
-#define DOWN 1
+#define FORWARD 0
+#define BACKWARD 1
 #define RIGHT 2
 #define LEFT 3
 
@@ -12,17 +12,23 @@ class SimonModule {
     private:
         Accelerometer* accel;
         LCD* lcd;
+
+        // array to store pattern
         int pattern[PLEN];
-        int patternLength;
 
         // LED pins {green, red, blue, yellow}
         int leds[4] = {12, 11, 10, 9};
-        int tones[4] = {600, 450, 500, 550};
+        int tones[4] = {587, 440, 494, 523};
         int piezo = 8;
+
+        // thermistor connected to A3
+        int thermistor = 3;
     
     // private methods
     private:
         int readMovement();
+        void waitForLevel();
+        bool disableAlarm();
 
     // public methods
     public:
