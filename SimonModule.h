@@ -1,3 +1,6 @@
+#ifndef SimonModule_h
+#define SimonModule_h
+
 #include "Accelerometer.h"
 #include "LCD.h"
 
@@ -38,3 +41,5 @@ class SimonModule {
         void playRound();
         void testAccel();
 };
+
+#endif

@@ -8,16 +8,13 @@
 #define RMAX 1024
 
 // Deadzone for what is considered "level" by the accelerometer (degrees)
-#define LEVEL_ROLL_DEADZONE 20
-#define LEVEL_PITCH_DEADZONE 20
+#define LEVEL_ROLL_DEADZONE 30
+#define LEVEL_PITCH_DEADZONE 30
 
 
 class Accelerometer
 {
     private:
-        // ADC Reference Voltage
-        //const float ADC_ref;
-
         // accelerometer pins
         const unsigned int xpin;
         const unsigned int ypin;

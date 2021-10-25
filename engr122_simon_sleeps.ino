@@ -1,18 +1,30 @@
 #include "SimonModule.h"
+#include "AlarmModule.h"
 #include <Wire.h>
 
 SimonModule* smod;
+AlarmModule* amod;
 
 void setup() {
     // start Serial
     Serial.begin(9600);
 
     smod = new SimonModule();
-    smod->playRound();
+    amod = new AlarmModule();
+
+    //smod->playRound();
 }
 
 void loop() {
-
+    amod->iterate();
+    Time t = amod->getTime();
+    Serial.print(t.hour);
+    Serial.print(":");
+    Serial.print(t.minute);
+    Serial.print(":");
+    Serial.print(t.second);
+    Serial.println();
+    delay(100);
 }
 
 
