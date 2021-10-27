@@ -1,33 +1,107 @@
+#include <Arduino.h>
+#include <Wire.h>
 #include "SimonModule.h"
 #include "AlarmModule.h"
-#include <Wire.h>
+#include "RFHandler.h"
 
+/*
+To make sure that each module only runs code it's supposed to,
+a digitalRead() call will be made on specific pins. If one returns
+HIGH, then the corresponding module code will be set.
+*/
+const uint8_t simonPin = 8;
+const uint8_t alarmPin = 5;       //TBD
+uint8_t module;
+
+// Create class object pointers
 SimonModule* smod;
 AlarmModule* amod;
+RFHandler* rf;
 
 void setup() {
-    // start Serial
+    // start serial
     Serial.begin(9600);
 
-    smod = new SimonModule();
-    amod = new AlarmModule();
+    // get module code
+    module = determineModule();
 
-    //smod->playRound();
+    // do current module's setup
+    switch(module) {
+        case 0:
+            simonSetup;
+            break;
+
+        case 1:
+            alarmSetup();
+            break;
+
+        case 2:
+        case 3:
+            rf = new RFHandler();
+            break;
+
+        default:
+            break;
+    }
 }
 
 void loop() {
-    amod->iterate();
-    Time t = amod->getTime();
-    Serial.print(t.hour);
-    Serial.print(":");
-    Serial.print(t.minute);
-    Serial.print(":");
-    Serial.print(t.second);
-    Serial.println();
-    delay(100);
+    // do current module's loop
+    switch (module) {
+        case 0:
+            simonLoop();
+            break;
+        
+        case 1:
+            alarmLoop();
+            break;
+    }
 }
 
+/**
+ * Determines the module this script is currently running on by
+ * doing digitalRead() calls to the preset pins
+ * @return              the current module's code
+ */
+int determineModule() {
+    // set pinmodes of module pins
+    pinMode(simonPin, INPUT);
+    pinMode(alarmPin, INPUT);
 
+    // check pin's status and return module's code
+    if (digitalRead(simonPin) == HIGH)
+        return 0;
+    else if (digitalRead(alarmPin) == HIGH)
+        return 1;
+    else
+        return -1;
+}
+
+// Handles simon's setup
+void simonSetup() {
+        smod = new SimonModule();
+}
+
+// What simon should do each loop iteration
+void simonLoop() {
+    rf->send("test");
+    delay(500);
+}
+
+// Handles alarm's setup
+void alarmSetup() {
+        amod = new AlarmModule();
+}
+
+// What alarm should do each loop iteration
+void alarmLoop() {
+        // iterate clock
+        //amod->iterate();
+        //delay(100);
+        rf->listen();
+}
+
+/*
 // scans all device ports and print any connection addresses to the serial monitor
 void deviceScan() {
     // init wire
@@ -64,3 +138,4 @@ void deviceScan() {
     if (devices == 0)
         Serial.println("No I2C devices found\n");
 }
+*/

@@ -1,6 +1,9 @@
-#include "Arduino.h"
-#include "SimonModule.h"
+#include <Arduino.h>
 #include <stdlib.h>
+#include "SimonModule.h"
+
+/* Empty deconstructor */
+SimonModule::~SimonModule() { /* empty */ }
 
 /**
  * Default constructor for SimonModule
@@ -8,10 +11,12 @@
 SimonModule::SimonModule() {
     accel = new Accelerometer(2, 1, 0);
     lcd = new LCD(0x27);
+    rf = new RFHandler();
     
     // clear lcd and display startup message
     lcd->clear();
     lcd->write("Starting Up...");
+
     
     // set piezo pinmode
     pinMode(piezo, OUTPUT);
@@ -41,9 +46,6 @@ void SimonModule::generatePattern() {
  */
 void SimonModule::displayPattern() {
     for (int i = 0; i < PLEN; i++) {
-        Serial.print(pattern[i]);
-        Serial.print(" ");
-
         digitalWrite(leds[pattern[i]], HIGH);
         tone(piezo, tones[pattern[i]]);
         delay(250);
@@ -51,7 +53,6 @@ void SimonModule::displayPattern() {
         noTone(piezo);
         delay(100);
     }
-    Serial.println();
 }
 
 /** TODO
@@ -115,8 +116,6 @@ void SimonModule::playRound() {
         // get player movements
         for (int movement = 0; movement < PLEN; movement++) {
             movements[movement] = readMovement();
-            Serial.print(movements[movement]);
-            Serial.print(" ");
 
             // light LED and make tone that corresponds with the movement
             digitalWrite(leds[movements[movement]], HIGH);
@@ -128,7 +127,6 @@ void SimonModule::playRound() {
             // wait for player to level module out before taking next movement
             waitForLevel();
         }
-        Serial.println();
 
         // check if movements are correct
         bool correct = true;
@@ -172,7 +170,6 @@ void SimonModule::playRound() {
 
 
 bool SimonModule::disableAlarm() {
-    Serial.println("ALARM DISABLED");
     return true;
 }
 

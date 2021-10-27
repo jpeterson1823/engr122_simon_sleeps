@@ -1,6 +1,7 @@
 #ifndef AlarmModule_h
 #define AlarmModule_h
 
+#include "RFHandler.h"
 #include "LCD.h"
 
 struct Time {
@@ -12,12 +13,17 @@ struct Time {
 class AlarmModule {
     private:
         LCD* lcd;
+        RFHandler* rf;
         Time time;
         long lastIter;
 
         // input pins
-        int timeSetPin  = 5;
-        int alarmSetPin = 6;
+        int timeSetPin  = 2;
+        int alarmSetPin = 3;
+
+        // output pins
+        int piezo = 4;
+        int ledControl = 5;
 
     private:
         bool canUpdate();
@@ -25,6 +31,7 @@ class AlarmModule {
 
     public:
         AlarmModule();
+        ~AlarmModule();
         void iterate();
         Time getTime();
         void setTime(Time time);

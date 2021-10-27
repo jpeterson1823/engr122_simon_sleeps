@@ -1,5 +1,8 @@
-#include "Arduino.h"
+#include <Arduino.h>
 #include "AlarmModule.h"
+
+/* Empty deconstructor */
+AlarmModule::~AlarmModule() { /* empty */ }
 
 /**
  * Default constructor
@@ -8,13 +11,16 @@ AlarmModule::AlarmModule() {
     // pinmodes
     pinMode(timeSetPin,  INPUT);
     pinMode(alarmSetPin, INPUT);
+    pinMode(ledControl, OUTPUT);
 
     // create LCD object
     lcd = new LCD(0x27);
 
+    rf = new RFHandler();
+
     // set default time to 12:00:00AM
-    time.hour   = 0;
-    time.minute = 0;
+    time.hour   = 16;
+    time.minute = 20;
     time.second = 0;
 
     // no last iter, so set to zero
@@ -36,14 +42,26 @@ char intToChar(int i) {
  */
 void AlarmModule::displayTime() {
     // create null terminated char[] (basically a string)
-    char tstr[9] = {' ', ' ', ':' ,' ' ,' ' ,':' ,' ' ,' ', '\0'};
+    char tstr[11] = {' ', ' ', ':' ,' ' ,' ' ,':' ,' ' ,' ', 'A', 'M', '\0'};
+    bool pm = false;
 
     // format hour by splitting and using ASCII values to convert int to char
     if (time.hour < 10)
         tstr[0] = '0';
+    else {
+        if (time.hour > 12) {
+            pm = true;
+            int h = time.hour - 12;
+            if (h < 10)
+                tstr[0] = '0';
+        }
+        else
+            tstr[0] = intToChar(time.hour / 10);
+    }
+    if (time.hour > 12)
+        tstr[1] = intToChar((time.hour-2) % 10);
     else
-        tstr[0] = intToChar(time.hour / 10);
-    tstr[1] = intToChar(time.hour % 10);
+        tstr[1] = intToChar(time.hour % 10);
 
     // format minute in the same way hour was formatted
     if (time.minute < 10)
@@ -58,8 +76,13 @@ void AlarmModule::displayTime() {
     else
         tstr[6] = intToChar(time.second / 10);
     tstr[7] = intToChar(time.second % 10);
+
+    // check if pm
+    if (pm)
+        tstr[8] = 'P';
     
     // write converted char[] to lcd
+    lcd->clear();
     lcd->write(tstr);
 }
 

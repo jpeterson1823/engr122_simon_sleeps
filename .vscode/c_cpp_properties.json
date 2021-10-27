@@ -1,0 +1,40 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/**"
+            ],
+            "defines": [],
+            "compilerPath": "/usr/bin/gcc",
+            "cStandard": "gnu17",
+            "cppStandard": "gnu++14",
+            "intelliSenseMode": "linux-gcc-x64"
+        },
+        {
+            "name": "Arduino",
+            "includePath": [
+                "/home/invisa/Documents/arduino-1.8.16/hardware/arduino/avr/cores/arduino/",
+                "/home/invisa/Documents/arduino-1.8.16/hardware/arduino/avr/libraries/EEPROM/",
+                "/home/invisa/Documents/arduino-1.8.16/hardware/arduino/avr/libraries/HID/",
+                "/home/invisa/Documents/arduino-1.8.16/hardware/arduino/avr/libraries/SPI/",
+                "/home/invisa/Documents/arduino-1.8.16/hardware/arduino/avr/libraries/SoftwareSerial/",
+                "/home/invisa/Documents/arduino-1.8.16/hardware/arduino/avr/libraries/Wire/",
+                "/home/invisa/Documents/arduino-1.8.16/hardware/tools/avr/avr/include/",
+                "/home/invisa/Documents/arduino-1.8.16/hardware/tools/avr/avr/include/avr/",
+                "/home/invisa/Documents/arduino-1.8.16/hardware/tools/avr/avr/include/compat/",
+                "/home/invisa/Documents/arduino-1.8.16/hardware/tools/avr/avr/include/util/",
+                "/home/invisa/Documents/arduino-1.8.16/hardware/tools/avr/lib/gcc/avr/7.3.0/include/",
+                "/home/invisa/Documents/arduino-1.8.16/hardware/tools/avr/lib/gcc/avr/7.3.0/include-fixed/",
+                "/home/invisa/Documents/arduino-1.8.16/hardware/arduino/avr/libraries/Wire/src",
+                "/home/invisa/Documents/arduino-1.8.16/hardware/arduino/avr/libraries/SPI/src",
+                "${workspaceFolder}/RadioHead"
+            ],
+            "browse": {
+                "limitSymbolsToIncludedHeaders": true,
+                "databaseFilename": ""
+            }
+        }
+    ],
+    "version": 4
+}

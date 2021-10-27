@@ -1,5 +1,3 @@
-#include <Wire.h>
-#include <Arduino.h>
 #include "LCD.h"
 #include "LiquidCrystal_I2C.h"
 
