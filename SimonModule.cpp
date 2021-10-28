@@ -168,9 +168,21 @@ void SimonModule::playRound() {
     }
 }
 
-
+/**
+ * Sends disable command to alarm
+ * @return              true if alarm confirms it has been disabled, false otherwise
+ */
 bool SimonModule::disableAlarm() {
-    return true;
+    // send disable command
+    rf->send("STOP;");
+
+    // wait for confirmation from alarm module
+    String cmd = "";
+    while (cmd.equals("") || cmd.equals("NONE;"))
+        cmd = rf->listen();
+    
+    if (cmd == "CONF;") return true;
+    else return false;
 }
 
 

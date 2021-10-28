@@ -23,21 +23,22 @@ void setup() {
     Serial.begin(9600);
 
     // get module code
-    module = determineModule();
+    //module = determineModule();
+    module = 0;
 
     // do current module's setup
     switch(module) {
         case 0:
-            simonSetup;
+            Serial.println("Simon Setup");
+            rf = new RFHandler();
+            //simonSetup;
             break;
 
         case 1:
-            alarmSetup();
-            break;
-
-        case 2:
-        case 3:
+            pinMode(13, OUTPUT);
+            Serial.println("Alarm Setup");
             rf = new RFHandler();
+            //alarmSetup();
             break;
 
         default:
@@ -84,8 +85,13 @@ void simonSetup() {
 
 // What simon should do each loop iteration
 void simonLoop() {
-    rf->send("test");
-    delay(500);
+    digitalWrite(13, LOW);
+    delay(2000);
+    rf->send("test;");
+    Serial.println("Sent.");
+    while (rf->listen().equals("NONE;")) { /* do nothing */ }
+    digitalWrite(13, HIGH);
+    Serial.println("Received.");
 }
 
 // Handles alarm's setup
@@ -98,7 +104,11 @@ void alarmLoop() {
         // iterate clock
         //amod->iterate();
         //delay(100);
-        rf->listen();
+        while (rf->listen().equals("NONE;")) { /* do nothing */ }
+        Serial.println("Received");
+        delay(2000);
+        rf->send("test;");
+        Serial.println("Sent");
 }
 
 /*

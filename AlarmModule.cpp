@@ -19,12 +19,9 @@ AlarmModule::AlarmModule() {
     rf = new RFHandler();
 
     // set default time to 12:00:00AM
-    time.hour   = 16;
+    time.hour   = 18;
     time.minute = 20;
-    time.second = 0;
-
-    // no last iter, so set to zero
-    lastIter = 0;
+    time.millisecond = 0;
 }
 
 /**
@@ -42,7 +39,7 @@ char intToChar(int i) {
  */
 void AlarmModule::displayTime() {
     // create null terminated char[] (basically a string)
-    char tstr[11] = {' ', ' ', ':' ,' ' ,' ' ,':' ,' ' ,' ', 'A', 'M', '\0'};
+    char tstr[8] = {' ', ' ', ':' ,' ' ,' ' , 'A', 'M', '\0'};
     bool pm = false;
 
     // format hour by splitting and using ASCII values to convert int to char
@@ -70,16 +67,9 @@ void AlarmModule::displayTime() {
         tstr[3] = intToChar(time.minute / 10);
     tstr[4] = intToChar(time.minute % 10);
 
-    // format second in the same way minute was formatted
-    if (time.second < 10)
-        tstr[6] = '0';
-    else
-        tstr[6] = intToChar(time.second / 10);
-    tstr[7] = intToChar(time.second % 10);
-
     // check if pm
     if (pm)
-        tstr[8] = 'P';
+        tstr[6] = 'P';
     
     // write converted char[] to lcd
     lcd->clear();
@@ -90,39 +80,25 @@ void AlarmModule::displayTime() {
  * Checks if the time should be updated
  * @return          true if can be updated, false otherwise
  */
-bool AlarmModule::canUpdate() {
-    return millis() - lastIter >= 1000;
-}
 
 
 /**
  * Adds one second to the second counter, then updates
  * hour and minute counter accordingly.
  */
-void AlarmModule::iterate() {
-    if (canUpdate()) {
-        time.second++;
+void AlarmModule::iterateClock() {
+    // increment minute if 60 seconds have passed
+    if (time.millisecond >= 60000)
+        time.minute++;
 
-        // update second, minute, and hour
-        if (time.second == 60) {
-            time.second = 0;
-            time.minute++;
-        }
-        if (time.minute == 60) {
-            time.minute = 0;
-            time.hour++;
-        }
-        if (time.hour == 24) {
-            time.hour   = 0;
-            time.minute = 0;
-            time.second = 0;
-        }
-
-        // update last iteration timer
-        lastIter = millis();
-
-        // display new time
-        displayTime();
+    // update minute and hour variables
+    if (time.minute == 60) {
+        time.minute = 0;
+        time.hour++;
+    }
+    if (time.hour == 24) {
+        time.hour = 0;
+        time.minute = 0;
     }
 }
 
@@ -139,10 +115,9 @@ Time AlarmModule::getTime() {
  * @param           time - new time to store
  */
 void AlarmModule::setTime(Time time) {
-    if (time.hour <= 23 && time.minute < 60 && time.second < 60) {
+    if (time.hour <= 23 && time.minute < 60) {
         this->time.hour = time.hour;
         this->time.minute = time.minute;
-        this->time.second = time.second;
     }
 }
 
@@ -152,8 +127,62 @@ void AlarmModule::setTime(Time time) {
  * @param           minute - new minute to store
  * @param           second - new second to store
  */
-void AlarmModule::setTime(int hour, int minute, int second) {
+void AlarmModule::setTime(int hour, int minute) {
     this->time.hour = time.hour;
     this->time.minute = time.minute;
-    this->time.second = time.second;
+    this->time.millisecond = 0;
+}
+
+/**
+ * Acts just as delay() does, but listens for RF communication during the delay.
+ * @return              true if received STOP command, false otherwise.
+ */
+bool AlarmModule::delayAndListen(long duration) {
+    String cmd = "";
+    long start = millis();
+    while (millis() - start != duration) {
+        cmd = rf->listen();
+
+        //check for stop command
+        if (cmd.equals("STOP;")) return true;
+    }
+    return false;
+}
+
+/**
+ * Activates the alarm sequence for the module.
+ * Will beep and flash (if flash is enabled) until stop command is received
+ * (or is unplugged).
+ */
+void AlarmModule::sound() {
+    while (!rf->listen().equals("STOP;")) {
+        // turn on leds and tone
+        digitalWrite(ledControl, HIGH);
+        tone(piezo, 600);
+
+        // delay while listening for stop cmd
+        if (delayAndListen(500)) {
+            this->silence();
+            return;
+        }
+
+        // turn off leds and tone
+        digitalWrite(ledControl, LOW);
+        noTone(piezo);
+
+        // delay while listening for stop cmd
+        if (delayAndListen(500)) {
+            this->silence();
+            return;
+        }
+    }
+}
+
+/**
+ * Silences the alarm sequence
+ */
+void AlarmModule::silence() {
+    // turn off LEDs and tone
+    digitalWrite(ledControl, LOW);
+    noTone(piezo);
 }

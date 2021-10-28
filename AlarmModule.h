@@ -7,7 +7,7 @@
 struct Time {
     int hour;
     int minute;
-    int second;
+    int millisecond;
 };
 
 class AlarmModule {
@@ -15,7 +15,10 @@ class AlarmModule {
         LCD* lcd;
         RFHandler* rf;
         Time time;
-        long lastIter;
+        int lastMinute = 0;
+
+        // boolean to allow for disabling flashing lights
+        boolean flashEnabled = false;
 
         // input pins
         int timeSetPin  = 2;
@@ -28,13 +31,16 @@ class AlarmModule {
     private:
         bool canUpdate();
         void displayTime();
+        bool delayAndListen(long duration);
 
     public:
         AlarmModule();
         ~AlarmModule();
-        void iterate();
+        void sound();
+        void silence();
+        void iterateClock();
         Time getTime();
         void setTime(Time time);
-        void setTime(int hour, int minute, int second);
+        void setTime(int hour, int minuten);
 };
 #endif

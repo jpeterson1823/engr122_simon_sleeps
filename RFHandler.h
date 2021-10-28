@@ -1,6 +1,8 @@
 #ifndef RFHandler_h
 #define RFHandler_h
 
+#define CMD_LEN 4
+
 #include <Arduino.h>
 #include <RH_ASK.h>
 #include <SPI.h>
@@ -13,7 +15,7 @@ class RFHandler {
         RFHandler();
         ~RFHandler();
         void send(String str);
-        bool listen();
+        String listen();
 };
 
 #endif

@@ -9,7 +9,8 @@ RFHandler::~RFHandler() { /* empty */ }
  */
 RFHandler::RFHandler() {
     rf = new RH_ASK();
-    rf->init();
+    if (!rf->init()) Serial.println("RF init failed.");
+    else Serial.print("RF initiated.");
 }
 
 /**
@@ -20,21 +21,23 @@ void RFHandler::send(String str) {
     const char* msg = str.c_str();
     rf->send((uint8_t *)msg, strlen(msg));
     rf->waitPacketSent();
-    delay(100);
+    delay(1000);
 }
 
 /**
  * Listens for an attempt at sending data
  * @return              true if message received, false otherwise
  */
-bool RFHandler::listen() {
-    uint8_t buf[12];
+String RFHandler::listen() {
+    uint8_t buf[CMD_LEN];
     uint8_t buflen = sizeof(buf);
 
     if (rf->recv(buf, &buflen)) {
-        Serial.print("Message: ");
-        Serial.println((char*)buf);
-        return true;
+        String msg = "";
+        for (int i = 0; i < CMD_LEN; i++) 
+            msg += (char)buf[i];
+        return msg;
     }
-    return false;
+    else
+        return "NONE;";
 }
