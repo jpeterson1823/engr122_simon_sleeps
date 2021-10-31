@@ -1,8 +1,11 @@
 #include <Arduino.h>
 #include "AlarmModule.h"
 
-/* Empty deconstructor */
-AlarmModule::~AlarmModule() { /* empty */ }
+// Destructor
+AlarmModule::~AlarmModule() {
+    delete lcd;
+    delete rf;
+}
 
 /**
  * Default constructor
@@ -15,13 +18,24 @@ AlarmModule::AlarmModule() {
 
     // create LCD object
     lcd = new LCD(0x27);
+    lcd->write("Starting up...");
 
+    // create RF transmitter and receiver handler
     rf = new RFHandler();
 
-    // set default time to 12:00:00AM
-    time.hour   = 18;
-    time.minute = 20;
+    // set default time to 12:00 AM
+    time.hour   = 22;
+    time.minute = 40;
     time.millisecond = 0;
+
+    // set default alarm to 6:00 AM
+    alarm.hour = 7;
+    alarm.minute = 0;
+
+    // delay to let things catch up and then display time and alarm
+    delay(500);
+    displayTime();
+    displayAlarm();
 }
 
 /**
@@ -39,85 +53,122 @@ char intToChar(int i) {
  */
 void AlarmModule::displayTime() {
     // create null terminated char[] (basically a string)
-    char tstr[8] = {' ', ' ', ':' ,' ' ,' ' , 'A', 'M', '\0'};
+    String tstr = " Time: ";
     bool pm = false;
 
-    // format hour by splitting and using ASCII values to convert int to char
-    if (time.hour < 10)
-        tstr[0] = '0';
+    if (time.hour == 0)
+        tstr += "12";
+    else if (time.hour < 10) {
+        tstr += "0" + (String)time.hour;
+    }
     else {
-        if (time.hour > 12) {
+        if (time.hour >= 12) {
             pm = true;
             int h = time.hour - 12;
-            if (h < 10)
-                tstr[0] = '0';
+            if (h == 0) tstr += "12";
+            else if (h < 10) tstr += "0" + (String)h;
+            else tstr += (String)h;
         }
-        else
-            tstr[0] = intToChar(time.hour / 10);
+        else tstr += (String)time.hour;
     }
-    if (time.hour > 12)
-        tstr[1] = intToChar((time.hour-2) % 10);
-    else
-        tstr[1] = intToChar(time.hour % 10);
+
+    // add colon
+    tstr += ':';
 
     // format minute in the same way hour was formatted
     if (time.minute < 10)
-        tstr[3] = '0';
+        tstr += "0" + (String)time.minute;
     else
-        tstr[3] = intToChar(time.minute / 10);
-    tstr[4] = intToChar(time.minute % 10);
+        tstr += (String)time.minute;
 
     // check if pm
     if (pm)
-        tstr[6] = 'P';
+        tstr += 'P';
+    else
+        tstr += 'A';
+    tstr += 'M';
     
-    // write converted char[] to lcd
+    // write converted char[] to lcd first row
     lcd->clear();
-    lcd->write(tstr);
+    lcd->write(tstr.c_str());
 }
 
 /**
- * Checks if the time should be updated
- * @return          true if can be updated, false otherwise
+ * Displays the current alarm on the LCD screen
+ * Should be the same method as displayTime but im lazy.
  */
+void AlarmModule::displayAlarm(bool useFirstRow) {
+    // create null terminated char[] (basically a string)
+    String tstr = "Alarm: ";
+    bool pm = false;
 
+    if (alarm.hour == 0)
+        tstr += "12";
+    else if (alarm.hour < 10) {
+        tstr += "0" + (String)alarm.hour;
+    }
+    else {
+        if (alarm.hour >= 12) {
+            pm = true;
+            int h = alarm.hour - 12;
+            if (h == 0) tstr += "12";
+            else if (h < 10) tstr += "0" + (String)h;
+            else tstr += (String)h;
+        }
+        else tstr += (String)alarm.hour;
+    }
+
+    // add colon
+    tstr += ':';
+
+    // format minute in the same way hour was formatted
+    if (alarm.minute < 10)
+        tstr += "0" + (String)alarm.minute;
+    else
+        tstr += (String)alarm.minute;
+
+    // check if pm
+    if (pm)
+        tstr += 'P';
+    else
+        tstr += 'A';
+    tstr += 'M';
+    
+    // write converted char[] to lcd second row
+    if (useFirstRow) {
+        lcd->clear();
+        lcd->write(tstr.c_str(), 0);
+    }
+    else
+        lcd->write(tstr.c_str(), 1);
+}
 
 /**
- * Adds one second to the second counter, then updates
+ * Adds one minute to the counter if 60 seconds have passed, then updates
  * hour and minute counter accordingly.
  */
 void AlarmModule::iterateClock() {
+    // update delta time and millisecond counter
+    long long dT = millis() - lastUpdate;
+    time.millisecond += dT;
+    lastUpdate = millis();
+
     // increment minute if 60 seconds have passed
-    if (time.millisecond >= 60000)
+    if (time.millisecond >= 60000) {
+        time.millisecond = 0;
         time.minute++;
 
-    // update minute and hour variables
-    if (time.minute == 60) {
-        time.minute = 0;
-        time.hour++;
-    }
-    if (time.hour == 24) {
-        time.hour = 0;
-        time.minute = 0;
-    }
-}
-
-/**
- * Time's accessor
- * @return          time - currently calculated time
- */
-Time AlarmModule::getTime() {
-    return time;
-}
-
-/**
- * Time's mutator
- * @param           time - new time to store
- */
-void AlarmModule::setTime(Time time) {
-    if (time.hour <= 23 && time.minute < 60) {
-        this->time.hour = time.hour;
-        this->time.minute = time.minute;
+        // update minute and hour variables
+        if (time.minute == 60) {
+            time.minute = 0;
+            time.hour++;
+        }
+        if (time.hour == 24) {
+            time.hour = 0;
+            time.minute = 0;
+        }
+        displayTime();
+        displayAlarm();
     }
 }
 
@@ -125,12 +176,21 @@ void AlarmModule::setTime(Time time) {
  * Time's mutator
  * @param           hour - new hour to store
  * @param           minute - new minute to store
- * @param           second - new second to store
  */
-void AlarmModule::setTime(int hour, int minute) {
+void AlarmModule::setCurrentTime(int hour, int minute) {
     this->time.hour = time.hour;
     this->time.minute = time.minute;
     this->time.millisecond = 0;
+}
+
+/**
+ * Alarm's mutator
+ * @param           hour - hour to sound alarm
+ * @param           minute - minute to sound alarm
+ */
+void AlarmModule::setAlarm(int hour, int minute) {
+    alarm.hour = hour;
+    alarm.minute = minute;
 }
 
 /**
@@ -156,6 +216,7 @@ bool AlarmModule::delayAndListen(long duration) {
  */
 void AlarmModule::sound() {
     while (!rf->listen().equals("STOP;")) {
+        Serial.println("WHOOP!");
         // turn on leds and tone
         digitalWrite(ledControl, HIGH);
         tone(piezo, 600);
@@ -185,4 +246,115 @@ void AlarmModule::silence() {
     // turn off LEDs and tone
     digitalWrite(ledControl, LOW);
     noTone(piezo);
+}
+
+void AlarmModule::checkSetTimeEvent() {
+    if (digitalRead(timeSetPin) == HIGH) {
+        // clear screen and delay for user QoL
+        lcd->clear();
+        delay(500);
+
+        // create header and display current option and selection
+        String header = "Set: ";
+        displayTime();
+        lcd->write("Setting: HOUR", 1);
+
+        // Set hour
+        displayTime();
+        lcd->write("Setting: HOUR", 1);
+        while (digitalRead(alarmSetPin) != HIGH) {
+            if (digitalRead(timeSetPin) == HIGH) {
+                time.hour++;
+                if (time.hour > 23)
+                    time.hour = 0;
+                displayTime();
+                lcd->write("Setting: HOUR", 1);
+            }
+            delay(175);
+        }
+
+        //clear screen and delay for user's QoL
+        lcd->clear();
+        delay(250);
+
+        // Set minute
+        displayTime();
+        lcd->write("Setting: MINUTE", 1);
+        while (digitalRead(alarmSetPin) != HIGH) {
+            if (digitalRead(timeSetPin) == HIGH) {
+                time.minute++;
+                if (time.minute > 59)
+                    time.minute = 0;
+                displayTime();
+                lcd->write("Setting: MINUTE", 1);
+            }
+            delay(100);
+        }
+
+        // clear screen and let user know the update has taken effect
+        lcd->clear();
+        lcd->write("Clock Updated!");
+        delay(500);
+
+        // display time normally along with alarm
+        displayTime();
+        displayAlarm();
+    }
+}
+
+void AlarmModule::checkSetAlarmEvent() {
+    if (digitalRead(alarmSetPin) == HIGH) {
+        // clear lcd and delay for user QoL
+        lcd->clear();
+        delay(500);
+
+        // Set hour
+        displayAlarm(true);
+        lcd->write("Setting: HOUR", 1);
+        while (digitalRead(alarmSetPin) != HIGH) {
+            if (digitalRead(timeSetPin) == HIGH) {
+                alarm.hour++;
+                if (alarm.hour > 23)
+                    alarm.hour = 0;
+                displayAlarm(true);
+                lcd->write("Setting: HOUR", 1);
+            }
+            delay(175);
+        }
+
+        //clear screen and delay for user's QoL
+        lcd->clear();
+        delay(250);
+
+        // Set minute
+        displayAlarm(true);
+        lcd->write("Setting: MINUTE", 1);
+        while (digitalRead(alarmSetPin) != HIGH) {
+            if (digitalRead(timeSetPin) == HIGH) {
+                alarm.minute++;
+                if (alarm.minute > 59)
+                    alarm.minute = 0;
+                displayAlarm(true);
+                lcd->write("Setting: MINUTE", 1);
+            }
+            delay(100);
+        }
+        
+        // clear screen and let user know the update has taken effect
+        lcd->clear();
+        lcd->write("Clock Updated!");
+        delay(500);
+
+        // display alarm normally along with time.
+        displayTime();
+        displayAlarm();
+    }
+}
+
+/**
+ * Checks to see if the alarm should sound
+ * @return              true if alarm should sound, false otherwise
+ */
+bool AlarmModule::isTime() {
+    return (time.hour == alarm.hour && time.minute == alarm.minute);
 }

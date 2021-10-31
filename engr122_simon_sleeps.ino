@@ -5,12 +5,13 @@
 #include "RFHandler.h"
 
 /*
+TODO:
 To make sure that each module only runs code it's supposed to,
 a digitalRead() call will be made on specific pins. If one returns
 HIGH, then the corresponding module code will be set.
 */
 const uint8_t simonPin = 8;
-const uint8_t alarmPin = 5;       //TBD
+const uint8_t alarmPin = 5;
 uint8_t module;
 
 // Create class object pointers
@@ -22,23 +23,22 @@ void setup() {
     // start serial
     Serial.begin(9600);
 
+    deviceScan();
+
     // get module code
     //module = determineModule();
-    module = 0;
+    module = 1;
 
     // do current module's setup
     switch(module) {
         case 0:
             Serial.println("Simon Setup");
-            rf = new RFHandler();
-            //simonSetup;
+            simonSetup;
             break;
 
         case 1:
-            pinMode(13, OUTPUT);
             Serial.println("Alarm Setup");
-            rf = new RFHandler();
-            //alarmSetup();
+            alarmSetup();
             break;
 
         default:
@@ -85,13 +85,7 @@ void simonSetup() {
 
 // What simon should do each loop iteration
 void simonLoop() {
-    digitalWrite(13, LOW);
-    delay(2000);
-    rf->send("test;");
-    Serial.println("Sent.");
-    while (rf->listen().equals("NONE;")) { /* do nothing */ }
-    digitalWrite(13, HIGH);
-    Serial.println("Received.");
+
 }
 
 // Handles alarm's setup
@@ -104,14 +98,19 @@ void alarmLoop() {
         // iterate clock
         //amod->iterate();
         //delay(100);
-        while (rf->listen().equals("NONE;")) { /* do nothing */ }
-        Serial.println("Received");
-        delay(2000);
-        rf->send("test;");
-        Serial.println("Sent");
+        
+        if (!amod->isTime()) {
+            amod->iterateClock();
+            amod->checkSetAlarmEvent();
+            amod->checkSetTimeEvent();
+        }
+        else {
+            Serial.println("Sounding alarm...");
+            amod->sound();
+        }
 }
 
-/*
+
 // scans all device ports and print any connection addresses to the serial monitor
 void deviceScan() {
     // init wire
@@ -133,7 +132,7 @@ void deviceScan() {
             if (address < 16)
                 Serial.print("0");
             Serial.print(address, HEX);
-            Serial.println();
+            Serial.println("");
             devices++;
         }
         // unknown error thrown. idk what that means
@@ -148,4 +147,3 @@ void deviceScan() {
     if (devices == 0)
         Serial.println("No I2C devices found\n");
 }
-*/

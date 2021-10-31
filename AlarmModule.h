@@ -7,7 +7,12 @@
 struct Time {
     int hour;
     int minute;
-    int millisecond;
+    long long millisecond;
+};
+
+struct Alarm {
+    int hour;
+    int minute;
 };
 
 class AlarmModule {
@@ -15,7 +20,8 @@ class AlarmModule {
         LCD* lcd;
         RFHandler* rf;
         Time time;
-        int lastMinute = 0;
+        Alarm alarm;
+        long long lastUpdate = 0;
 
         // boolean to allow for disabling flashing lights
         boolean flashEnabled = false;
@@ -25,13 +31,16 @@ class AlarmModule {
         int alarmSetPin = 3;
 
         // output pins
-        int piezo = 4;
-        int ledControl = 5;
+        int piezo = 9;
+        int ledControl = 7;
 
     private:
-        bool canUpdate();
         void displayTime();
+        void displayAlarm(bool useFirstRow = false);
         bool delayAndListen(long duration);
+
+        void setCurrentTime(int hour, int minute);
+        void setAlarm(int hour, int minute);
 
     public:
         AlarmModule();
@@ -39,8 +48,9 @@ class AlarmModule {
         void sound();
         void silence();
         void iterateClock();
-        Time getTime();
-        void setTime(Time time);
-        void setTime(int hour, int minuten);
+        void checkSetAlarmEvent();
+        void checkSetTimeEvent();
+        bool isTime();
+        
 };
 #endif

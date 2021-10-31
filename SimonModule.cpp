@@ -2,8 +2,12 @@
 #include <stdlib.h>
 #include "SimonModule.h"
 
-/* Empty deconstructor */
-SimonModule::~SimonModule() { /* empty */ }
+// Destructor
+SimonModule::~SimonModule() {
+    delete accel;
+    delete lcd;
+    delete rf;
+}
 
 /**
  * Default constructor for SimonModule

@@ -1,7 +1,9 @@
 #include "RFHandler.h"
 
-/* Empty  deconstructor */
-RFHandler::~RFHandler() { /* empty */ }
+// Destructor
+RFHandler::~RFHandler() {
+    delete rf;
+}
 
 /**
  * Default constructor.
