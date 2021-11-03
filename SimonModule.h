@@ -21,19 +21,18 @@ class SimonModule {
         // array to store pattern
         int pattern[PLEN];
 
-        // LED pins {green, red, yellow, blue}
+        // LED pins {blue, yellow, green, red}
         int leds[4] = {2, 3, 4, 5};
         int tones[4] = {440, 494, 523, 587 };
         int piezo = 6;
 
-        // thermistor connected to A3
-        int thermistor = 7;
+        // thermistor connected to A7
+        int thermistor = A7;
     
     // private methods
     private:
         int readMovement();
         void waitForLevel();
-        bool disableAlarm();
 
     // public methods
     public:
@@ -41,6 +40,8 @@ class SimonModule {
         ~SimonModule();
         void generatePattern();
         void displayPattern();
+        void waitForAlarm();
+        bool disableAlarm();
         void playRound();
         void testAccel();
 };

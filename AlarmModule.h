@@ -37,7 +37,7 @@ class AlarmModule {
     private:
         void displayTime();
         void displayAlarm(bool useFirstRow = false);
-        bool delayAndListen(long duration);
+        bool delayAndListen(unsigned long duration);
 
         void setCurrentTime(int hour, int minute);
         void setAlarm(int hour, int minute);

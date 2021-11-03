@@ -23,17 +23,23 @@ void setup() {
     // start serial
     Serial.begin(9600);
 
-    deviceScan();
+    //deviceScan();
 
     // get module code
     //module = determineModule();
-    module = 1;
+    module = 0;
+
+    Serial.print("Module: ");
+    Serial.println(module);
+
+    rf = new RFHandler();
+
 
     // do current module's setup
     switch(module) {
         case 0:
             Serial.println("Simon Setup");
-            simonSetup;
+            simonSetup();
             break;
 
         case 1:
@@ -59,6 +65,7 @@ void loop() {
     }
 }
 
+
 /**
  * Determines the module this script is currently running on by
  * doing digitalRead() calls to the preset pins
@@ -80,12 +87,20 @@ int determineModule() {
 
 // Handles simon's setup
 void simonSetup() {
-        smod = new SimonModule();
+    smod = new SimonModule();
 }
 
 // What simon should do each loop iteration
 void simonLoop() {
+    // wait until alarm sends start message
+    smod->waitForAlarm();
 
+    // once start cmd received, play two rounds
+    smod->playRound();
+    smod->playRound();
+
+    // send stop cmd
+    smod->disableAlarm();
 }
 
 // Handles alarm's setup
@@ -99,14 +114,18 @@ void alarmLoop() {
         //amod->iterate();
         //delay(100);
         
+        // check if alarm should go off
         if (!amod->isTime()) {
+            // if not, update clock display
             amod->iterateClock();
             amod->checkSetAlarmEvent();
             amod->checkSetTimeEvent();
         }
         else {
-            Serial.println("Sounding alarm...");
+            // sound alarm
             amod->sound();
+            // after silenced, loop until alarm will no longer be sounding (aka for 60 seconds)
+            while (amod->isTime()) { /* do nothing */ }
         }
 }
 

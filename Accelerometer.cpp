@@ -30,12 +30,12 @@ int Accelerometer::getZAccel() {
 
 
 float Accelerometer::getRoll() {
-    return atan(getYAccel() / sqrt(pow(getYAccel(), 2) + pow(getZAccel(), 2))) * 180 / PI;
+    return ROLL_OFFSET + (atan(getYAccel() / sqrt(pow(getYAccel(), 2) + pow(getZAccel(), 2))) * 180 / PI);
 }
 
 
 float Accelerometer::getPitch() {
-    return atan(-1 * getXAccel() / sqrt(pow(getYAccel(), 2) + pow(getZAccel(), 2))) * 180 / PI;
+    return PITCH_OFFSET + (atan(-1 * getXAccel() / sqrt(pow(getYAccel(), 2) + pow(getZAccel(), 2))) * 180 / PI);
 }
 
 

@@ -38,6 +38,7 @@ String RFHandler::listen() {
         String msg = "";
         for (int i = 0; i < CMD_LEN; i++) 
             msg += (char)buf[i];
+        Serial.println("Received: " + msg);
         return msg;
     }
     else

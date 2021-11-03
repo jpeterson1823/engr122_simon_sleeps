@@ -14,6 +14,7 @@
         {
             "name": "Arduino",
             "includePath": [
+                "/home/invisa/GitHub/engr122_simon_sleeps/",
                 "/home/invisa/Documents/arduino-1.8.16/hardware/arduino/avr/cores/arduino/",
                 "/home/invisa/Documents/arduino-1.8.16/hardware/arduino/avr/libraries/EEPROM/",
                 "/home/invisa/Documents/arduino-1.8.16/hardware/arduino/avr/libraries/HID/",
@@ -28,7 +29,7 @@
                 "/home/invisa/Documents/arduino-1.8.16/hardware/tools/avr/lib/gcc/avr/7.3.0/include-fixed/",
                 "/home/invisa/Documents/arduino-1.8.16/hardware/arduino/avr/libraries/Wire/src",
                 "/home/invisa/Documents/arduino-1.8.16/hardware/arduino/avr/libraries/SPI/src",
-                "${workspaceFolder}/RadioHead"
+                "/home/invisa/GitHub/engr122_simon_sleeps/RadioHead"
             ],
             "browse": {
                 "limitSymbolsToIncludedHeaders": true,

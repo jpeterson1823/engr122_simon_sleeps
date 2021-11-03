@@ -7,29 +7,25 @@ SimonModule::~SimonModule() {
     delete accel;
     delete lcd;
     delete rf;
+    delete pattern;
 }
 
 /**
  * Default constructor for SimonModule
  */
 SimonModule::SimonModule() {
+    // initialize class pointers
     accel = new Accelerometer(2, 1, 0);
-    lcd = new LCD(0x27);
     rf = new RFHandler();
-    
-    // clear lcd and display startup message
-    lcd->clear();
-    lcd->write("Starting Up...");
 
-    
     // set piezo pinmode
     pinMode(piezo, OUTPUT);
     // set pinmodes for leds
     for(int i = 0; i < 4; i++)
         pinMode(leds[i], OUTPUT);
 
-    // set pinmode for thermistor
-    pinMode(thermistor, INPUT);
+    // set random seed
+    randomSeed(analogRead(0) + analogRead(thermistor) / analogRead(1));
 }
 
 /**
@@ -40,8 +36,7 @@ SimonModule::SimonModule() {
 void SimonModule::generatePattern() {
     for (int i = 0; i < PLEN; i++) {
         // use thermistor to generate some randomness
-        srand(analogRead(thermistor) * micros() / millis());
-        pattern[i] = rand() % 4;
+        pattern[i] = random(0, 4);
     }
 }
 
@@ -55,7 +50,7 @@ void SimonModule::displayPattern() {
         delay(250);
         digitalWrite(leds[pattern[i]], LOW);
         noTone(piezo);
-        delay(100);
+        delay(250);
     }
 }
 
@@ -76,9 +71,9 @@ int SimonModule::readMovement() {
             return BACKWARD;
 
         else if (pitch > LEVEL_PITCH_DEADZONE)
-            return LEFT;
-        else if (pitch < -1 * LEVEL_PITCH_DEADZONE)
             return RIGHT;
+        else if (pitch < -1 * LEVEL_PITCH_DEADZONE)
+            return LEFT;
     }
 }
 
@@ -112,11 +107,14 @@ void SimonModule::waitForLevel() {
 void SimonModule::playRound() {
     // generate and display a pattern
     generatePattern();
+    delay(100);
     
     // loop until player gets pattern right
     int movements[PLEN] = {};
     while (true) {
+        Serial.println("Displaying pattern...");
         displayPattern();
+        Serial.println("Done displaying pattern.");
         // get player movements
         for (int movement = 0; movement < PLEN; movement++) {
             movements[movement] = readMovement();
@@ -139,18 +137,8 @@ void SimonModule::playRound() {
                 correct = false;
 
 
-        // if correct, disable alarm
-        if (correct) {
-            disableAlarm();
-            digitalWrite(leds[0], HIGH);
-            digitalWrite(leds[1], HIGH);
-            digitalWrite(leds[2], HIGH);
-            digitalWrite(leds[3], HIGH);
-            break;
-        }
-
-        // else, flash all leds on module 3 times with a tone to signal incorrect pattern
-        else {
+        // if failed, flash LEDs to show they were wrong.
+        if(!correct) {
             for (int i = 0; i < 3; i++) {
                 digitalWrite(leds[0], HIGH);
                 digitalWrite(leds[1], HIGH);
@@ -169,7 +157,17 @@ void SimonModule::playRound() {
                 delay(250);
             }
         }
+        // otherwise, break loop and exit method
+        else break;
     }
+    delay(100);
+}
+
+/**
+ * Continuously listens for the alarm's sound command.
+ */
+void SimonModule::waitForAlarm() {
+    while (!rf->listen().equals("ALRM;")) { /* do nothing */ }
 }
 
 /**
@@ -178,7 +176,10 @@ void SimonModule::playRound() {
  */
 bool SimonModule::disableAlarm() {
     // send disable command
-    rf->send("STOP;");
+    for (int i = 0; i < 10; i++) {
+        Serial.println("Sending stop command...");
+        rf->send("STOP;");
+    }
 
     // wait for confirmation from alarm module
     String cmd = "";

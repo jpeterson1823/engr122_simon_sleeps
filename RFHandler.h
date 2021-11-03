@@ -1,7 +1,7 @@
 #ifndef RFHandler_h
 #define RFHandler_h
 
-#define CMD_LEN 4
+#define CMD_LEN 5
 
 #include <Arduino.h>
 #include <RH_ASK.h>

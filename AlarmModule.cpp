@@ -24,9 +24,9 @@ AlarmModule::AlarmModule() {
     rf = new RFHandler();
 
     // set default time to 12:00 AM
-    time.hour   = 22;
-    time.minute = 40;
-    time.millisecond = 0;
+    time.hour   = 6;
+    time.minute = 59;
+    time.millisecond = 58000;
 
     // set default alarm to 6:00 AM
     alarm.hour = 7;
@@ -197,9 +197,9 @@ void AlarmModule::setAlarm(int hour, int minute) {
  * Acts just as delay() does, but listens for RF communication during the delay.
  * @return              true if received STOP command, false otherwise.
  */
-bool AlarmModule::delayAndListen(long duration) {
+bool AlarmModule::delayAndListen(unsigned long duration) {
     String cmd = "";
-    long start = millis();
+    unsigned long start = millis();
     while (millis() - start != duration) {
         cmd = rf->listen();
 
@@ -215,16 +215,27 @@ bool AlarmModule::delayAndListen(long duration) {
  * (or is unplugged).
  */
 void AlarmModule::sound() {
-    while (!rf->listen().equals("STOP;")) {
-        Serial.println("WHOOP!");
+    // send the start command to the simon module
+    rf->send("ALRM;");
+
+    // begin listening while sounding...
+    String s = rf->listen();
+    while (!s.equals("STOP;")) {
+        s = rf->listen();
         // turn on leds and tone
         digitalWrite(ledControl, HIGH);
         tone(piezo, 600);
 
         // delay while listening for stop cmd
-        if (delayAndListen(500)) {
-            this->silence();
-            return;
+        //if (delayAndListen(500)) {
+        //    this->silence();
+        //    Serial.println("Stopping sound...");
+        //    s = "STOP;";
+        //}
+        for (int i = 0; i < 50; i++) {
+            s = rf->listen();
+            if (s.equals("STOP;")) break;
+            delay(10);
         }
 
         // turn off leds and tone
@@ -232,11 +243,19 @@ void AlarmModule::sound() {
         noTone(piezo);
 
         // delay while listening for stop cmd
-        if (delayAndListen(500)) {
-            this->silence();
-            return;
+        //if (delayAndListen(500)) {
+        //    this->silence();
+        //    Serial.println("Stopping sound...");
+        //    s = "STOP;";
+        //}
+
+        for (int i = 0; i < 50; i++) {
+            s = rf->listen();
+            if (s.equals("STOP;")) break;
+            delay(10);
         }
     }
+    Serial.println("Exiting AlarmModule::sound()");
 }
 
 /**
@@ -246,6 +265,9 @@ void AlarmModule::silence() {
     // turn off LEDs and tone
     digitalWrite(ledControl, LOW);
     noTone(piezo);
+
+    lcd->clear();
+    lcd->write("Alarm Silenced!");
 }
 
 void AlarmModule::checkSetTimeEvent() {
