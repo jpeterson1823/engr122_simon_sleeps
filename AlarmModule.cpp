@@ -26,7 +26,7 @@ AlarmModule::AlarmModule() {
     // set default time to 12:00 AM
     time.hour   = 6;
     time.minute = 59;
-    time.millisecond = 58000;
+    time.millisecond = 55000;
 
     // set default alarm to 6:00 AM
     alarm.hour = 7;

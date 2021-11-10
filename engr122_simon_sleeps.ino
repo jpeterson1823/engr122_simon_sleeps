@@ -17,7 +17,6 @@ uint8_t module;
 // Create class object pointers
 SimonModule* smod;
 AlarmModule* amod;
-RFHandler* rf;
 
 void setup() {
     // start serial
@@ -31,8 +30,6 @@ void setup() {
 
     Serial.print("Module: ");
     Serial.println(module);
-
-    rf = new RFHandler();
 
 
     // do current module's setup
@@ -53,12 +50,13 @@ void setup() {
 }
 
 void loop() {
+
     // do current module's loop
     switch (module) {
         case 0:
             simonLoop();
             break;
-        
+
         case 1:
             alarmLoop();
             break;
@@ -94,6 +92,8 @@ void simonSetup() {
 void simonLoop() {
     // wait until alarm sends start message
     smod->waitForAlarm();
+
+    smod->waitForUserReady();
 
     // once start cmd received, play two rounds
     smod->playRound();

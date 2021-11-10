@@ -100,6 +100,13 @@ void SimonModule::waitForLevel() {
     }
 }
 
+void SimonModule::waitForUserReady() {
+    readMovement();
+    waitForLevel();
+    readMovement();
+    waitForLevel();
+}
+
 /**
  * Plays a round of Simon Says and returns the result
  * @return          true if player is correct, false otherwise
@@ -140,20 +147,13 @@ void SimonModule::playRound() {
         // if failed, flash LEDs to show they were wrong.
         if(!correct) {
             for (int i = 0; i < 3; i++) {
-                digitalWrite(leds[0], HIGH);
-                digitalWrite(leds[1], HIGH);
-                digitalWrite(leds[2], HIGH);
-                digitalWrite(leds[3], HIGH);
                 tone(piezo, 700);
-
-                delay(250);
-
-                digitalWrite(leds[0], LOW);
-                digitalWrite(leds[1], LOW);
-                digitalWrite(leds[2], LOW);
-                digitalWrite(leds[3], LOW);
+                for (int j = 0; j < 4; j++) {
+                    digitalWrite(leds[j], HIGH);
+                    delay(250 / 4);
+                    digitalWrite(leds[j], LOW);
+                }
                 noTone(piezo);
-
                 delay(250);
             }
         }
@@ -180,14 +180,6 @@ bool SimonModule::disableAlarm() {
         Serial.println("Sending stop command...");
         rf->send("STOP;");
     }
-
-    // wait for confirmation from alarm module
-    String cmd = "";
-    while (cmd.equals("") || cmd.equals("NONE;"))
-        cmd = rf->listen();
-    
-    if (cmd == "CONF;") return true;
-    else return false;
 }
 
 

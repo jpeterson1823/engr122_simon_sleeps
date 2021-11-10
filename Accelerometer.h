@@ -8,7 +8,7 @@
 #define RMAX 1024
 
 // Roll and Pitch offset used to calibrate feeling of Simon game (degrees)
-#define ROLL_OFFSET 10
+#define ROLL_OFFSET 0
 #define PITCH_OFFSET 0
 
 // Deadzone for what is considered "level" by the accelerometer (degrees)

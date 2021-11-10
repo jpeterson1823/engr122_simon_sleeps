@@ -6,10 +6,10 @@
 #include "RFHandler.h"
 
 #define PLEN 5
-#define FORWARD 0
-#define BACKWARD 1
-#define LEFT 2
-#define RIGHT 3
+#define FORWARD 1
+#define BACKWARD 0
+#define LEFT 3
+#define RIGHT 2
 
 class SimonModule {
     // member variables
@@ -40,6 +40,7 @@ class SimonModule {
         ~SimonModule();
         void generatePattern();
         void displayPattern();
+        void waitForUserReady();
         void waitForAlarm();
         bool disableAlarm();
         void playRound();
