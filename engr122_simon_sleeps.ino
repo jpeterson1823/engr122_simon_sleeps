@@ -5,139 +5,95 @@
 #include "RFHandler.h"
 
 /*
-TODO:
-To make sure that each module only runs code it's supposed to,
-a digitalRead() call will be made on specific pins. If one returns
-HIGH, then the corresponding module code will be set.
+This is what tells the program which module's code to run.
+Simon Module = 0
+Alarm Module = 1
 */
-const uint8_t simonPin = 8;
-const uint8_t alarmPin = 5;
-uint8_t module;
+#define MODULE 1
+
+
+// PROTOTYPES
+void deviceScan();
+
 
 // Create class object pointers
 SimonModule* smod;
 AlarmModule* amod;
 
+
+// setup
 void setup() {
     // start serial
     Serial.begin(9600);
 
     //deviceScan();
 
-    // get module code
-    //module = determineModule();
-    module = 0;
-
     Serial.print("Module: ");
-    Serial.println(module);
+    Serial.println(MODULE);
 
 
     // do current module's setup
-    switch(module) {
-        case 0:
-            Serial.println("Simon Setup");
-            simonSetup();
-            break;
+    if (MODULE == 0)
+        // instantiate smod and allocate in memory.
+        smod = new SimonModule();
 
-        case 1:
-            Serial.println("Alarm Setup");
-            alarmSetup();
-            break;
-
-        default:
-            break;
-    }
-}
-
-void loop() {
-
-    // do current module's loop
-    switch (module) {
-        case 0:
-            simonLoop();
-            break;
-
-        case 1:
-            alarmLoop();
-            break;
-    }
-}
-
-
-/**
- * Determines the module this script is currently running on by
- * doing digitalRead() calls to the preset pins
- * @return              the current module's code
- */
-int determineModule() {
-    // set pinmodes of module pins
-    pinMode(simonPin, INPUT);
-    pinMode(alarmPin, INPUT);
-
-    // check pin's status and return module's code
-    if (digitalRead(simonPin) == HIGH)
-        return 0;
-    else if (digitalRead(alarmPin) == HIGH)
-        return 1;
+    else if (MODULE == 1)
+        // instantiate amod and allocate in memory.
+        amod = new AlarmModule();
     else
-        return -1;
+        // Print error to serial monitor
+        Serial.println("Unknown module code has been defined. Must be either 0 or 1");
 }
 
-// Handles simon's setup
-void simonSetup() {
-    smod = new SimonModule();
-    //accel->readInput();
-    //float r = accel->getRoll();
-    //float p = accel->getPitch();
+// loop
+void loop() {
+    // use switch statement here since this is called all the time
+    switch (MODULE) {
+        case 0:
+            // wait until alarm sends start message
+            smod->waitForAlarm();
 
-    //Serial.print("Roll: ");
-    //Serial.println(r);
-    //Serial.print("Pitch: ");
-    //Serial.println(p);
-    //Serial.println();
-    //delay(100);
-}
+            // once start command received, wait for user to tilt the device twice
+            smod->waitForUserReady();
 
-// What simon should do each loop iteration
-void simonLoop() {
-    // wait until alarm sends start message
-    smod->waitForAlarm();
+            // when user readys up, play two rounds
+            smod->playRound();
+            smod->playRound();
 
-    smod->waitForUserReady();
+            // send stop cmd when both rounds completed
+            smod->disableAlarm();
 
-    // once start cmd received, play two rounds
-    smod->playRound();
-    smod->playRound();
+            // end case
+        break;
 
-    // send stop cmd
-    smod->disableAlarm();
-}
+        case 1:
+            // check if alarm should go off
+            bool isTime = amod->isTime();
+            
+            switch (isTime) {
+                // if not, update clock display
+                case false:
+                    amod->iterateClock();
+                    amod->checkSetAlarmEvent();
+                    amod->checkSetTimeEvent();
+                break;
 
-// Handles alarm's setup
-void alarmSetup() {
-    amod = new AlarmModule();
-}
-
-// What alarm should do each loop iteration
-void alarmLoop() {
-    // check if alarm should go off
-    if (!amod->isTime()) {
-        // if not, update clock display
-        amod->iterateClock();
-        amod->checkSetAlarmEvent();
-        amod->checkSetTimeEvent();
-    }
-    else {
-        // sound alarm
-        amod->sound();
-        // after silenced, loop until alarm will no longer be sounding (aka for ~60 seconds)
-        while (amod->isTime()) {
-            amod->iterateClock();
-            amod->checkSetAlarmEvent();
-            amod->checkSetTimeEvent();
-        }
+                // sound alarm
+                case true:
+                    amod->sound();
+                    // after silenced, loop until alarm will no longer be sounding (aka for ~60 seconds)
+                    while (amod->isTime()) {
+                        amod->iterateClock();
+                        amod->checkSetAlarmEvent();
+                        amod->checkSetTimeEvent();
+                    }
+                break;
+            }
+        break;
     }
 }
+
+
 
 
 // scans all device ports and print any connection addresses to the serial monitor

@@ -24,18 +24,29 @@ AlarmModule::AlarmModule() {
     rf = new RFHandler();
 
     // set default time to 12:00 AM
-    time.hour   = 6;
-    time.minute = 59;
-    time.millisecond = 55000;
+    time.hour   = 13;
+    time.minute = 41;
+    time.millisecond = 0;
 
     // set default alarm to 6:00 AM
     alarm.hour = 7;
     alarm.minute = 0;
 
     // delay to let things catch up and then display time and alarm
-    delay(500);
+    sleep(500);
     displayTime();
     displayAlarm();
+}
+
+/**
+ * A wrapper for the delay() function. Will make sure to account for time lost during delay().
+ * @param           duration - length of delay in milliseconds
+ */
+void AlarmModule::sleep(int duration) {
+    // delay for the duration provided
+    delay(duration);
+    // add delay time to millisecond and iterate clock to update & format
+    iterateClock();
 }
 
 /**
@@ -153,10 +164,16 @@ void AlarmModule::iterateClock() {
     time.millisecond += dT;
     lastUpdate = millis();
 
+    
+
     // increment minute if 60 seconds have passed
     if (time.millisecond >= 60000) {
         time.millisecond = 0;
         time.minute++;
+
+        // it was found that it loses around 14-15 seconds every minute update...
+        // add offest to keep arduino somewhat accurate
+        time.millisecond += 14500;
 
         // update minute and hour variables
         if (time.minute == 60) {
@@ -194,7 +211,7 @@ void AlarmModule::setAlarm(int hour, int minute) {
 }
 
 /**
- * Acts just as delay() does, but listens for RF communication during the delay.
+ * Acts just as sleep() does, but listens for RF communication during the delay.
  * @return              true if received STOP command, false otherwise.
  */
 bool AlarmModule::delayAndListen(unsigned long duration) {
@@ -236,7 +253,7 @@ void AlarmModule::sound() {
         for (int i = 0; i < 50; i++) {
             s = rf->listen();
             if (s.equals("STOP;")) break;
-            delay(10);
+            sleep(10);
         }
 
         // turn off leds and tone
@@ -253,7 +270,7 @@ void AlarmModule::sound() {
         for (int i = 0; i < 50; i++) {
             s = rf->listen();
             if (s.equals("STOP;")) break;
-            delay(10);
+            sleep(10);
         }
     }
 }
@@ -270,113 +287,118 @@ void AlarmModule::silence() {
     lcd->write("Alarm Silenced!");
 }
 
+
 void AlarmModule::checkSetTimeEvent() {
-    if (digitalRead(timeSetPin) == HIGH) {
-        // clear screen and delay for user QoL
-        lcd->clear();
-        delay(500);
+    int val = digitalRead(timeSetPin);
+    switch (val) {
+        case HIGH:
+            // clear screen and delay for user QoL
+            lcd->clear();
+            sleep(500);
 
-        // create header and display current option and selection
-        String header = "Set: ";
-        displayTime();
-        lcd->write("Setting: HOUR", 1);
+            // create header and display current option and selection
+            String header = "Set: ";
+            displayTime();
+            lcd->write("Setting: HOUR", 1);
 
-        // Set hour
-        displayTime();
-        lcd->write("Setting: HOUR", 1);
-        while (digitalRead(timeSetPin) != HIGH) {
-            if (digitalRead(alarmSetPin) == HIGH) {
-                time.hour++;
-                if (time.hour > 23)
-                    time.hour = 0;
-                displayTime();
-                lcd->write("Setting: HOUR", 1);
+            // Set hour
+            displayTime();
+            lcd->write("Setting: HOUR", 1);
+            while (digitalRead(timeSetPin) != HIGH) {
+                if (digitalRead(alarmSetPin) == HIGH) {
+                    time.hour++;
+                    if (time.hour > 23)
+                        time.hour = 0;
+                    displayTime();
+                    lcd->write("Setting: HOUR", 1);
+                }
+                sleep(175);
             }
-            delay(175);
-        }
 
-        //clear screen and delay for user's QoL
-        lcd->clear();
-        delay(250);
+            //clear screen and delay for user's QoL
+            lcd->clear();
+            sleep(250);
 
-        // Set minute
-        displayTime();
-        lcd->write("Setting: MINUTE", 1);
-        while (digitalRead(timeSetPin) != HIGH) {
-            if (digitalRead(alarmSetPin) == HIGH) {
-                time.minute++;
-                if (time.minute > 59)
-                    time.minute = 0;
-                displayTime();
-                lcd->write("Setting: MINUTE", 1);
+            // Set minute
+            displayTime();
+            lcd->write("Setting: MINUTE", 1);
+            while (digitalRead(timeSetPin) != HIGH) {
+                if (digitalRead(alarmSetPin) == HIGH) {
+                    time.minute++;
+                    if (time.minute > 59)
+                        time.minute = 0;
+                    displayTime();
+                    lcd->write("Setting: MINUTE", 1);
+                }
+                sleep(100);
             }
-            delay(100);
-        }
 
-        // clear screen and let user know the update has taken effect
-        lcd->clear();
-        lcd->write("Clock Updated!");
-        delay(500);
+            // clear screen and let user know the update has taken effect
+            lcd->clear();
+            lcd->write("Clock Updated!");
+            sleep(500);
 
-        // display time normally along with alarm
-        displayTime();
-        displayAlarm();
+            // display time normally along with alarm
+            displayTime();
+            displayAlarm();
+        break;
+
+        default:
+            break;
     }
 }
 
 void AlarmModule::checkSetAlarmEvent() {
-    if (digitalRead(alarmSetPin) == HIGH) {
-        // clear lcd and delay for user QoL
-        lcd->clear();
-        delay(500);
+    int val = digitalRead(alarmSetPin);
+    switch (val) {
+        case HIGH:
+            // clear lcd and delay for user QoL
+            lcd->clear();
+            sleep(500);
 
-        // Set hour
-        displayAlarm(true);
-        lcd->write("Setting: HOUR", 1);
-        while (digitalRead(timeSetPin) != HIGH) {
-            if (digitalRead(alarmSetPin) == HIGH) {
-                alarm.hour++;
-                if (alarm.hour > 23)
-                    alarm.hour = 0;
-                displayAlarm(true);
-                lcd->write("Setting: HOUR", 1);
+            // Set hour
+            displayAlarm(true);
+            lcd->write("Setting: HOUR", 1);
+            while (digitalRead(timeSetPin) != HIGH) {
+                if (digitalRead(alarmSetPin) == HIGH) {
+                    alarm.hour++;
+                    if (alarm.hour > 23)
+                        alarm.hour = 0;
+                    displayAlarm(true);
+                    lcd->write("Setting: HOUR", 1);
+                }
+                sleep(175);
             }
-            delay(175);
-        }
 
-        //clear screen and delay for user's QoL
-        lcd->clear();
-        delay(250);
+            //clear screen and delay for user's QoL
+            lcd->clear();
+            sleep(250);
 
-        // Set minute
-        displayAlarm(true);
-        lcd->write("Setting: MINUTE", 1);
-        while (digitalRead(timeSetPin) != HIGH) {
-            if (digitalRead(alarmSetPin) == HIGH) {
-                alarm.minute++;
-                if (alarm.minute > 59)
-                    alarm.minute = 0;
-                displayAlarm(true);
-                lcd->write("Setting: MINUTE", 1);
+            // Set minute
+            displayAlarm(true);
+            lcd->write("Setting: MINUTE", 1);
+            while (digitalRead(timeSetPin) != HIGH) {
+                if (digitalRead(alarmSetPin) == HIGH) {
+                    alarm.minute++;
+                    if (alarm.minute > 59)
+                        alarm.minute = 0;
+                    displayAlarm(true);
+                    lcd->write("Setting: MINUTE", 1);
+                }
+                sleep(100);
             }
-            delay(100);
-        }
-        
-        // clear screen and let user know the update has taken effect
-        lcd->clear();
-        lcd->write("Clock Updated!");
-        delay(500);
+            
+            // clear screen and let user know the update has taken effect
+            lcd->clear();
+            lcd->write("Clock Updated!");
+            sleep(500);
 
-        // display alarm normally along with time.
-        displayTime();
-        displayAlarm();
+            // display alarm normally along with time.
+            displayTime();
+            displayAlarm();
+        break;
+
+        default:
+            break;
     }
-}
-
-/**
- * Checks to see if the alarm should sound
- * @return              true if alarm should sound, false otherwise
- */
-bool AlarmModule::isTime() {
-    return (time.hour == alarm.hour && time.minute == alarm.minute);
 }

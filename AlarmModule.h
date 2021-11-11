@@ -23,9 +23,6 @@ class AlarmModule {
         Alarm alarm;
         long long lastUpdate = 0;
 
-        // boolean to allow for disabling flashing lights
-        boolean flashEnabled = false;
-
         // input pins
         int timeSetPin  = 2;
         int alarmSetPin = 3;
@@ -35,12 +32,12 @@ class AlarmModule {
         int ledControl = 7;
 
     private:
+        void sleep(int duration);
         void displayTime();
         void displayAlarm(bool useFirstRow = false);
-        bool delayAndListen(unsigned long duration);
-
         void setCurrentTime(int hour, int minute);
         void setAlarm(int hour, int minute);
+        bool delayAndListen(unsigned long duration);
 
     public:
         AlarmModule();
@@ -50,7 +47,12 @@ class AlarmModule {
         void iterateClock();
         void checkSetAlarmEvent();
         void checkSetTimeEvent();
-        bool isTime();
+
+        /**
+         * Checks to see if the alarm should sound.
+         * @return          true if alarm should sound, false otherwise
+         */
+        inline bool isTime() { return (time.hour == alarm.hour && time.minute == alarm.minute); }
         
 };
 #endif
