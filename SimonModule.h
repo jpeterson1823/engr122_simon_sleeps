@@ -6,8 +6,8 @@
 #include "RFHandler.h"
 
 #define PLEN 5
-#define FORWARD 1
-#define BACKWARD 0
+#define FORWARD 0
+#define BACKWARD 1
 #define LEFT 3
 #define RIGHT 2
 

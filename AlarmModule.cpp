@@ -216,7 +216,8 @@ bool AlarmModule::delayAndListen(unsigned long duration) {
  */
 void AlarmModule::sound() {
     // send the start command to the simon module
-    rf->send("ALRM;");
+    for (int i = 0; i < 5; i++)
+        rf->send("ALRM;");
 
     // begin listening while sounding...
     String s = rf->listen();
@@ -255,7 +256,6 @@ void AlarmModule::sound() {
             delay(10);
         }
     }
-    Serial.println("Exiting AlarmModule::sound()");
 }
 
 /**
@@ -284,8 +284,8 @@ void AlarmModule::checkSetTimeEvent() {
         // Set hour
         displayTime();
         lcd->write("Setting: HOUR", 1);
-        while (digitalRead(alarmSetPin) != HIGH) {
-            if (digitalRead(timeSetPin) == HIGH) {
+        while (digitalRead(timeSetPin) != HIGH) {
+            if (digitalRead(alarmSetPin) == HIGH) {
                 time.hour++;
                 if (time.hour > 23)
                     time.hour = 0;
@@ -302,8 +302,8 @@ void AlarmModule::checkSetTimeEvent() {
         // Set minute
         displayTime();
         lcd->write("Setting: MINUTE", 1);
-        while (digitalRead(alarmSetPin) != HIGH) {
-            if (digitalRead(timeSetPin) == HIGH) {
+        while (digitalRead(timeSetPin) != HIGH) {
+            if (digitalRead(alarmSetPin) == HIGH) {
                 time.minute++;
                 if (time.minute > 59)
                     time.minute = 0;
@@ -333,8 +333,8 @@ void AlarmModule::checkSetAlarmEvent() {
         // Set hour
         displayAlarm(true);
         lcd->write("Setting: HOUR", 1);
-        while (digitalRead(alarmSetPin) != HIGH) {
-            if (digitalRead(timeSetPin) == HIGH) {
+        while (digitalRead(timeSetPin) != HIGH) {
+            if (digitalRead(alarmSetPin) == HIGH) {
                 alarm.hour++;
                 if (alarm.hour > 23)
                     alarm.hour = 0;
@@ -351,8 +351,8 @@ void AlarmModule::checkSetAlarmEvent() {
         // Set minute
         displayAlarm(true);
         lcd->write("Setting: MINUTE", 1);
-        while (digitalRead(alarmSetPin) != HIGH) {
-            if (digitalRead(timeSetPin) == HIGH) {
+        while (digitalRead(timeSetPin) != HIGH) {
+            if (digitalRead(alarmSetPin) == HIGH) {
                 alarm.minute++;
                 if (alarm.minute > 59)
                     alarm.minute = 0;

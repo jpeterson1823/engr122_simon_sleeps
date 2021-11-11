@@ -17,15 +17,12 @@ uint8_t module;
 // Create class object pointers
 SimonModule* smod;
 AlarmModule* amod;
-Accelerometer* accel;
 
 void setup() {
     // start serial
     Serial.begin(9600);
 
     //deviceScan();
-
-    accel = new Accelerometer(2, 1, 0);
 
     // get module code
     //module = determineModule();
@@ -88,17 +85,17 @@ int determineModule() {
 
 // Handles simon's setup
 void simonSetup() {
-    //smod = new SimonModule();
-    accel->readInput();
-    float r = accel->getRoll();
-    float p = accel->getPitch();
+    smod = new SimonModule();
+    //accel->readInput();
+    //float r = accel->getRoll();
+    //float p = accel->getPitch();
 
-    Serial.print("Roll: ");
-    Serial.println(r);
-    Serial.print("Pitch: ");
-    Serial.println(p);
-    Serial.println();
-    delay(100);
+    //Serial.print("Roll: ");
+    //Serial.println(r);
+    //Serial.print("Pitch: ");
+    //Serial.println(p);
+    //Serial.println();
+    //delay(100);
 }
 
 // What simon should do each loop iteration
@@ -118,28 +115,28 @@ void simonLoop() {
 
 // Handles alarm's setup
 void alarmSetup() {
-        amod = new AlarmModule();
+    amod = new AlarmModule();
 }
 
 // What alarm should do each loop iteration
 void alarmLoop() {
-        // iterate clock
-        //amod->iterate();
-        //delay(100);
-        
-        // check if alarm should go off
-        if (!amod->isTime()) {
-            // if not, update clock display
+    // check if alarm should go off
+    if (!amod->isTime()) {
+        // if not, update clock display
+        amod->iterateClock();
+        amod->checkSetAlarmEvent();
+        amod->checkSetTimeEvent();
+    }
+    else {
+        // sound alarm
+        amod->sound();
+        // after silenced, loop until alarm will no longer be sounding (aka for ~60 seconds)
+        while (amod->isTime()) {
             amod->iterateClock();
             amod->checkSetAlarmEvent();
             amod->checkSetTimeEvent();
         }
-        else {
-            // sound alarm
-            amod->sound();
-            // after silenced, loop until alarm will no longer be sounding (aka for 60 seconds)
-            while (amod->isTime()) { /* do nothing */ }
-        }
+    }
 }
 
 

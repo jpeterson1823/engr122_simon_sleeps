@@ -23,7 +23,7 @@ void RFHandler::send(String str) {
     const char* msg = str.c_str();
     rf->send((uint8_t *)msg, strlen(msg));
     rf->waitPacketSent();
-    delay(1000);
+    delay(100);
 }
 
 /**
