@@ -17,12 +17,15 @@ uint8_t module;
 // Create class object pointers
 SimonModule* smod;
 AlarmModule* amod;
+Accelerometer* accel;
 
 void setup() {
     // start serial
     Serial.begin(9600);
 
     //deviceScan();
+
+    accel = new Accelerometer(2, 1, 0);
 
     // get module code
     //module = determineModule();
@@ -85,7 +88,17 @@ int determineModule() {
 
 // Handles simon's setup
 void simonSetup() {
-    smod = new SimonModule();
+    //smod = new SimonModule();
+    accel->readInput();
+    float r = accel->getRoll();
+    float p = accel->getPitch();
+
+    Serial.print("Roll: ");
+    Serial.println(r);
+    Serial.print("Pitch: ");
+    Serial.println(p);
+    Serial.println();
+    delay(100);
 }
 
 // What simon should do each loop iteration
