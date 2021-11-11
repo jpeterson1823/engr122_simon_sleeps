@@ -14,3 +14,6 @@ The Simon module is in charge of disabling the alarm once it has sounded. It use
 
 ## Finances
 ![Image](readme_docs/e-and-l.png?raw=true "Energy and Labor Cost")
+![Image](readme_docs/protoman.png?raw=true "Prototype Manufacturing Cost")
+![Image](readme_docs/optiman.png?raw=true "Optimized Manufacturing Cost")
+![Image](readme_docs/final.png?raw=true "Final Cost")
