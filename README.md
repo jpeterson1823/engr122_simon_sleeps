@@ -13,4 +13,4 @@ The Alarm module is tasked with waking the user up. It does this by becoming one
 The Simon module is in charge of disabling the alarm once it has sounded. It uses the roll and pitch of the module as the user's input for the Simon game. Once the various rounds of Simon have been successfully finished, it will send the disable command to the Alarm Module.
 
 ## Finances
-![Image](readme_docs/finances.pdf)
+![Image](readme_docs/e-and-l.pdf?raw=true "Energy and Labor Cost")
