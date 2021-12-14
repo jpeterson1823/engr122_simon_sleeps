@@ -1,4 +1,13 @@
 # ENGR 122 - 002 Final Project : Simon Sleeps
+Team Members:
+* Jack Holliman
+* John Peterson
+* John Waskom
+
+Code written by: John Peterson
+
+## Awards
+This project was awarded 1st place in the 2021 Louisiana Tech COES Freshman Design Expo.
 
 ## General Information
 ### What is this all about?
